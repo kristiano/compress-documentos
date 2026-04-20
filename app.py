@@ -1,19 +1,19 @@
 """
-Caveman Compression — Streamlit Interface
-Upload PDF or DOCX → semantic compression for LLM contexts.
+Caveman Compression -- Streamlit Interface
+Upload PDF or DOCX -> semantic compression for LLM contexts.
 """
 
 import streamlit as st
 
-# ── Page config ────────────────────────────────────────────────────────────
+# -- Page config ---------------------------------------------------------------
 st.set_page_config(
     page_title="Caveman Compression",
-    page_icon="🦴",
+    page_icon="\U0001f9b4",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# ── CSS ────────────────────────────────────────────────────────────────────
+# -- CSS -----------------------------------------------------------------------
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -159,50 +159,50 @@ div[data-testid="stDownloadButton"] > button:hover {
 </style>
 """, unsafe_allow_html=True)
 
-# ── Hero ──────────────────────────────────────────────────────────────────
+# -- Hero ---------------------------------------------------------------------
 st.markdown("""
 <div class="hero">
-  <div class="hero-eyebrow">🦴 Semantic Token Compression</div>
+  <div class="hero-eyebrow">\U0001f9b4 Semantic Token Compression</div>
   <div class="hero-title">Caveman <span>Compression</span></div>
   <div class="hero-sub">
-      Upload a PDF or DOCX · Strip grammar · Keep facts · Save tokens.<br>
+      Upload a PDF or DOCX \u00b7 Strip grammar \u00b7 Keep facts \u00b7 Save tokens.<br>
       Compress LLM contexts by up to <b>58%</b> while preserving all semantic meaning.
   </div>
 </div>
 <div class="hr"></div>
 """, unsafe_allow_html=True)
 
-# ── Sidebar ───────────────────────────────────────────────────────────────
+# -- Sidebar ------------------------------------------------------------------
 with st.sidebar:
-    st.markdown("### ⚙️ Settings")
+    st.markdown("### \u2699\ufe0f Settings")
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
 
-    mode = st.radio("Operation", ["🗜️ Compress", "📖 Decompress"], index=0)
+    mode = st.radio("Operation", ["\U0001f5dc\ufe0f Compress", "\U0001f4d6 Decompress"], index=0)
 
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
     st.markdown("**Method**")
 
     method = st.selectbox(
         "Method",
-        ["NLP — Free & Offline", "MLM — RoBERTa (Free, Offline)", "LLM — OpenAI API (Best Quality)"],
+        ["NLP \u2014 Free & Offline", "MLM \u2014 RoBERTa (Free, Offline)", "LLM \u2014 OpenAI API (Best Quality)"],
         index=0,
         label_visibility="collapsed",
     )
 
     if "NLP" in method:
         st.markdown("""<div class="info-card info-green">
-        ✅ <b>NLP (spaCy)</b><br>Free · No GPU · Multilingual<br>
-        Reduction: 15–30% · Speed: &lt;100ms
+        \u2705 <b>NLP (spaCy)</b><br>Free \u00b7 No GPU \u00b7 Multilingual<br>
+        Reduction: 15\u201330% \u00b7 Speed: &lt;100ms
         </div>""", unsafe_allow_html=True)
     elif "MLM" in method:
         st.markdown("""<div class="info-card info-purple">
-        🤖 <b>MLM (RoBERTa)</b><br>Free · Local model (~500 MB)<br>
-        Reduction: 20–30% · Speed: 1–5s/doc
+        \U0001f916 <b>MLM (RoBERTa)</b><br>Free \u00b7 Local model (~500 MB)<br>
+        Reduction: 20\u201330% \u00b7 Speed: 1\u20135s/doc
         </div>""", unsafe_allow_html=True)
     else:
         st.markdown("""<div class="info-card info-orange">
-        ⚡ <b>LLM (OpenAI)</b><br>Best quality · API key required<br>
-        Reduction: 40–58% · Speed: ~2s/req
+        \u26a1 <b>LLM (OpenAI)</b><br>Best quality \u00b7 API key required<br>
+        Reduction: 40\u201358% \u00b7 Speed: ~2s/req
         </div>""", unsafe_allow_html=True)
 
     st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
@@ -247,7 +247,7 @@ with st.sidebar:
         openai_key = st.text_input("Key", value=default_key, type="password",
                                    placeholder="sk-...", label_visibility="collapsed")
         if not default_key:
-            st.caption("💡 On Streamlit Cloud add your key in **App Settings → Secrets**.")
+            st.caption("\U0001f4a1 On Streamlit Cloud add your key in **App Settings \u2192 Secrets**.")
         st.markdown("**Model**")
         openai_model = st.selectbox("Model", ["gpt-4o-mini", "gpt-4o", "gpt-3.5-turbo"],
                                     index=0, label_visibility="collapsed")
@@ -260,25 +260,25 @@ with st.sidebar:
     <div style="font-size:0.75rem;color:#9ca3af;text-align:center;line-height:1.7;">
         Based on <a href="https://github.com/wilpel/caveman-compression"
         style="color:#f97316;text-decoration:none;" target="_blank">caveman-compression</a><br>
-        by William Peltomäki · MIT License
+        by William Peltom\u00e4ki \u00b7 MIT License
     </div>""", unsafe_allow_html=True)
 
 
-# ── Helpers ───────────────────────────────────────────────────────────────
+# -- Helpers ------------------------------------------------------------------
 def quality_badge(sim):
     if sim is None:
         return ""
     if sim >= 0.95:
-        return f'<div class="quality q-excellent">✅ Excellent — {sim:.4f}</div>'
+        return f'<div class="quality q-excellent">\u2705 Excellent \u2014 {sim:.4f}</div>'
     if sim >= 0.90:
-        return f'<div class="quality q-good">🔵 Good — {sim:.4f}</div>'
+        return f'<div class="quality q-good">\U0001f535 Good \u2014 {sim:.4f}</div>'
     if sim >= 0.85:
-        return f'<div class="quality q-moderate">⚠️ Moderate — {sim:.4f}</div>'
-    return f'<div class="quality q-poor">❌ Poor — {sim:.4f}</div>'
+        return f'<div class="quality q-moderate">\u26a0\ufe0f Moderate \u2014 {sim:.4f}</div>'
+    return f'<div class="quality q-poor">\u274c Poor \u2014 {sim:.4f}</div>'
 
 
 def file_icon(name: str) -> str:
-    return "📄" if name.lower().endswith(".pdf") else "📝"
+    return "\U0001f4c4" if name.lower().endswith(".pdf") else "\U0001f4dd"
 
 
 def human_size(n: int) -> str:
@@ -289,10 +289,28 @@ def human_size(n: int) -> str:
     return f"{n/1024**2:.1f} MB"
 
 
-# ── Two-column layout ─────────────────────────────────────────────────────
+# -- Session state: resultado -------------------------------------------------
+for _k, _v in {
+    "resultado_text": None,
+    "resultado_stats": "",
+    "resultado_quality": "",
+    "resultado_filename": "resultado.md",
+}.items():
+    if _k not in st.session_state:
+        st.session_state[_k] = _v
+
+
+def _save_result(text, stats_html, quality_html="", filename="resultado.md"):
+    st.session_state.resultado_text = text
+    st.session_state.resultado_stats = stats_html
+    st.session_state.resultado_quality = quality_html
+    st.session_state.resultado_filename = filename
+
+
+# -- Two-column layout --------------------------------------------------------
 col_in, col_out = st.columns(2, gap="large")
 
-# ────────────────────── LEFT: upload ──────────────────────────────────────
+# ------------------- LEFT: upload --------------------------------------------
 with col_in:
     st.markdown('<div class="slabel">Upload File</div>', unsafe_allow_html=True)
 
@@ -320,93 +338,101 @@ with col_in:
           </div>
         </div>""", unsafe_allow_html=True)
 
-        # Extract text
         from file_extractor import extract_text
-        with st.spinner("Extracting text…"):
+        with st.spinner("Extracting text\u2026"):
             extracted_text, extract_err = extract_text(file_bytes, uploaded.name)
 
         if extract_err:
-            st.error(f"❌ {extract_err}")
+            st.error(f"\u274c {extract_err}")
         else:
             word_count = len(extracted_text.split())
             token_est = max(1, len(extracted_text) // 4)
             st.markdown(f"""
             <div class="stats-row">
                 <span class="pill pill-gray">~{word_count:,} words</span>
-                <span class="pill pill-blue">≈ {token_est:,} tokens</span>
+                <span class="pill pill-blue">\u2248 {token_est:,} tokens</span>
             </div>""", unsafe_allow_html=True)
 
-            with st.expander("👁️ Preview extracted text"):
-                preview = extracted_text[:1200] + ("…" if len(extracted_text) > 1200 else "")
+            with st.expander("\U0001f441\ufe0f Preview extracted text"):
+                preview = extracted_text[:1200] + ("\u2026" if len(extracted_text) > 1200 else "")
                 st.markdown(f'<div class="preview-box">{preview}</div>', unsafe_allow_html=True)
 
-    # Action button
     st.markdown("<div style='margin-top:1rem;'></div>", unsafe_allow_html=True)
-    run_label = "🗜️  Compress File" if "Compress" in mode else "📖  Decompress File"
+    run_label = "\U0001f5dc\ufe0f  Compress File" if "Compress" in mode else "\U0001f4d6  Decompress File"
     run_clicked = st.button(run_label, use_container_width=True, key="run_btn",
                             disabled=(not extracted_text))
 
-# ────────────────────── RIGHT: output ─────────────────────────────────────
+# ------------------- RIGHT: Resultado (expander, click-to-reveal) -----------
 with col_out:
-    st.markdown('<div class="slabel">Result</div>', unsafe_allow_html=True)
-    out_ph = st.empty()
-    stats_ph = st.empty()
-    dl_ph = st.empty()
+    has_result = bool(st.session_state.resultado_text)
+    check = " \u2705" if has_result else ""
 
-    out_ph.markdown(
-        '<div class="output-text" style="color:#9ca3af;font-style:italic;">'
-        'Upload a file and click Compress to see the result here…'
-        '</div>',
-        unsafe_allow_html=True,
-    )
+    with st.expander(f"\U0001f4cb Resultado{check}", expanded=False):
+        if has_result:
+            st.markdown(
+                f'<div class="output-text">{st.session_state.resultado_text}</div>',
+                unsafe_allow_html=True,
+            )
+            if st.session_state.resultado_stats:
+                st.markdown(st.session_state.resultado_stats, unsafe_allow_html=True)
+            if st.session_state.resultado_quality:
+                st.markdown(st.session_state.resultado_quality, unsafe_allow_html=True)
+            st.download_button(
+                "\u2b07\ufe0f Download .md",
+                data=st.session_state.resultado_text,
+                file_name=st.session_state.resultado_filename,
+                mime="text/markdown",
+            )
+        else:
+            st.markdown(
+                '<p style="color:#9ca3af;font-style:italic;margin:0;">'
+                'Fa\u00e7a a compress\u00e3o para ver o resultado aqui.</p>',
+                unsafe_allow_html=True,
+            )
 
-# ── Processing ────────────────────────────────────────────────────────────
+# -- Processing ---------------------------------------------------------------
 if run_clicked and extracted_text:
 
     input_text = extracted_text
 
-    # ── NLP ──────────────────────────────────────────────────────────────
+    # NLP -------------------------------------------------------------------
     if "NLP" in method:
         if "Compress" in mode:
             from compressor_nlp import compress_text, count_tokens
-            with st.spinner("Compressing with spaCy…"):
+            with st.spinner("Compressing with spaCy\u2026"):
                 result, err = compress_text(input_text, lang=lang)
             if err:
-                st.error(f"❌ {err}")
+                st.error(f"\u274c {err}")
                 st.stop()
             orig_t = count_tokens(input_text)
             comp_t = count_tokens(result)
             red = ((orig_t - comp_t) / orig_t * 100) if orig_t > 0 else 0
-            out_ph.markdown(f'<div class="output-text">{result}</div>', unsafe_allow_html=True)
-            stats_ph.markdown(f"""
+            _save_result(result, f"""
             <div class="stats-row">
-                <span class="pill pill-gray">{orig_t:,} → {comp_t:,} tokens</span>
-                <span class="pill pill-green">↓ {red:.1f}% reduction</span>
+                <span class="pill pill-gray">{orig_t:,} \u2192 {comp_t:,} tokens</span>
+                <span class="pill pill-green">\u2193 {red:.1f}% reduction</span>
                 <span class="badge badge-nlp">NLP</span>
-            </div>""", unsafe_allow_html=True)
-            dl_ph.download_button("⬇️ Download compressed .md", data=result,
-                                  file_name="compressed.md", mime="text/markdown")
+            </div>""", filename="compressed.md")
         else:
             from compressor_nlp import decompress_text
             result = decompress_text(input_text)
-            out_ph.markdown(f'<div class="output-text">{result}</div>', unsafe_allow_html=True)
-            stats_ph.markdown('<span class="badge badge-nlp">NLP · Decompress</span>', unsafe_allow_html=True)
-            dl_ph.download_button("⬇️ Download .md", data=result,
-                                  file_name="decompressed.md", mime="text/markdown")
+            _save_result(result,
+                         '<span class="badge badge-nlp">NLP \u00b7 Decompress</span>',
+                         filename="decompressed.md")
 
-    # ── MLM ──────────────────────────────────────────────────────────────
+    # MLM -------------------------------------------------------------------
     elif "MLM" in method:
         from compressor_mlm import is_available, get_missing_packages, count_tokens
         if not is_available():
             missing = get_missing_packages()
-            st.error(f"❌ Missing: `{', '.join(missing)}`\n\nRun: `pip install {' '.join(missing)}`")
+            st.error(f"\u274c Missing: `{', '.join(missing)}`\n\nRun: `pip install {' '.join(missing)}`")
             st.stop()
         if "Compress" in mode:
             from compressor_mlm import compress_text
-            pb = st.progress(0, text="Loading RoBERTa…")
+            pb = st.progress(0, text="Loading RoBERTa\u2026")
 
             def _cb(cur, tot):
-                pb.progress(min(cur / max(tot, 1), 1.0), text=f"Word {cur}/{tot}…")
+                pb.progress(min(cur / max(tot, 1), 1.0), text=f"Word {cur}/{tot}\u2026")
 
             result, err = compress_text(
                 input_text,
@@ -417,82 +443,74 @@ if run_clicked and extracted_text:
             )
             pb.empty()
             if err:
-                st.error(f"❌ {err}")
+                st.error(f"\u274c {err}")
                 st.stop()
             orig_t = count_tokens(input_text)
             comp_t = count_tokens(result)
             red = ((orig_t - comp_t) / orig_t * 100) if orig_t > 0 else 0
-            out_ph.markdown(f'<div class="output-text">{result}</div>', unsafe_allow_html=True)
-            stats_ph.markdown(f"""
+            _save_result(result, f"""
             <div class="stats-row">
-                <span class="pill pill-gray">{orig_t:,} → {comp_t:,} tokens</span>
-                <span class="pill pill-green">↓ {red:.1f}% reduction</span>
-                <span class="pill pill-purple">P ≥ {mlm_threshold:.0e}</span>
+                <span class="pill pill-gray">{orig_t:,} \u2192 {comp_t:,} tokens</span>
+                <span class="pill pill-green">\u2193 {red:.1f}% reduction</span>
+                <span class="pill pill-purple">P \u2265 {mlm_threshold:.0e}</span>
                 <span class="badge badge-mlm">RoBERTa</span>
-            </div>""", unsafe_allow_html=True)
-            dl_ph.download_button("⬇️ Download compressed .md", data=result,
-                                  file_name="compressed.md", mime="text/markdown")
+            </div>""", filename="compressed.md")
         else:
             from compressor_mlm import decompress_text
             result = decompress_text(input_text)
-            out_ph.markdown(f'<div class="output-text">{result}</div>', unsafe_allow_html=True)
-            stats_ph.markdown('<span class="badge badge-mlm">RoBERTa · Decompress</span>', unsafe_allow_html=True)
-            dl_ph.download_button("⬇️ Download .md", data=result,
-                                  file_name="decompressed.md", mime="text/markdown")
+            _save_result(result,
+                         '<span class="badge badge-mlm">RoBERTa \u00b7 Decompress</span>',
+                         filename="decompressed.md")
 
-    # ── LLM ──────────────────────────────────────────────────────────────
+    # LLM -------------------------------------------------------------------
     else:
         if not openai_key.strip():
-            st.error("❌ Enter your OpenAI API key in the sidebar.")
+            st.error("\u274c Enter your OpenAI API key in the sidebar.")
             st.stop()
         from compressor_llm import is_available as llm_ok
         if not llm_ok():
-            st.error("❌ `openai` not installed.")
+            st.error("\u274c `openai` not installed.")
             st.stop()
 
         if "Compress" in mode:
             from compressor_llm import compress_text
-            with st.spinner("Compressing with OpenAI…"):
+            with st.spinner("Compressing with OpenAI\u2026"):
                 result, orig_t, comp_t, red, sim, loss, err = compress_text(
                     input_text, api_key=openai_key, model=openai_model,
                     calc_embeddings=calc_embeddings,
                 )
             if err:
-                st.error(f"❌ {err}")
+                st.error(f"\u274c {err}")
                 st.stop()
-            out_ph.markdown(f'<div class="output-text">{result}</div>', unsafe_allow_html=True)
-            stats_ph.markdown(f"""
+            _save_result(result, f"""
             <div class="stats-row">
-                <span class="pill pill-gray">{orig_t:,} → {comp_t:,} tokens</span>
-                <span class="pill pill-green">↓ {red:.1f}% reduction</span>
+                <span class="pill pill-gray">{orig_t:,} \u2192 {comp_t:,} tokens</span>
+                <span class="pill pill-green">\u2193 {red:.1f}% reduction</span>
                 <span class="badge badge-llm">LLM / {openai_model}</span>
-            </div>
-            {quality_badge(sim) if calc_embeddings else ""}
-            """, unsafe_allow_html=True)
-            dl_ph.download_button("⬇️ Download compressed .md", data=result,
-                                  file_name="compressed.md", mime="text/markdown")
+            </div>""",
+            quality_html=quality_badge(sim) if calc_embeddings else "",
+            filename="compressed.md")
         else:
             from compressor_llm import decompress_text
-            with st.spinner("Decompressing…"):
+            with st.spinner("Decompressing\u2026"):
                 result, cave_t, norm_t, exp, err = decompress_text(
                     input_text, api_key=openai_key, model=openai_model
                 )
             if err:
-                st.error(f"❌ {err}")
+                st.error(f"\u274c {err}")
                 st.stop()
-            out_ph.markdown(f'<div class="output-text">{result}</div>', unsafe_allow_html=True)
-            stats_ph.markdown(f"""
+            _save_result(result, f"""
             <div class="stats-row">
-                <span class="pill pill-gray">{cave_t:,} → {norm_t:,} tokens</span>
-                <span class="pill pill-green">↑ {exp:.1f}% expansion</span>
+                <span class="pill pill-gray">{cave_t:,} \u2192 {norm_t:,} tokens</span>
+                <span class="pill pill-green">\u2191 {exp:.1f}% expansion</span>
                 <span class="badge badge-llm">LLM / {openai_model}</span>
-            </div>""", unsafe_allow_html=True)
-            dl_ph.download_button("⬇️ Download .md", data=result,
-                                  file_name="decompressed.md", mime="text/markdown")
+            </div>""", filename="decompressed.md")
 
-# ── How it works ──────────────────────────────────────────────────────────
+    st.rerun()
+
+# -- How it works -------------------------------------------------------------
 st.markdown('<div class="hr" style="margin-top:2rem;"></div>', unsafe_allow_html=True)
-with st.expander("ℹ️ How Caveman Compression works"):
+with st.expander("\u2139\ufe0f How Caveman Compression works"):
     c1, c2 = st.columns(2)
     with c1:
         st.markdown("""
@@ -506,17 +524,18 @@ with st.expander("ℹ️ How Caveman Compression works"):
         st.markdown("""
 **What stays** *(unpredictable / factual)*
 - **Numbers, names, dates**
-- **Technical terms** — *O(log n), API, JWT*
-- **Constraints** — *max 500 MB, 3 retries*
-- **Specifics** — *Stockholm, 99.9% uptime*
+- **Technical terms** -- *O(log n), API, JWT*
+- **Constraints** -- *max 500 MB, 3 retries*
+- **Specifics** -- *Stockholm, 99.9% uptime*
 """)
     st.markdown("""
 | Method | Reduction | Cost | Offline |
 |---|---|---|---|
-| NLP (spaCy) | 15–30% | Free | ✅ |
-| MLM (RoBERTa) | 20–30% | Free | ✅ |
-| LLM (OpenAI) | 40–58% | API key | ❌ |
+| NLP (spaCy) | 15-30% | Free | Yes |
+| MLM (RoBERTa) | 20-30% | Free | Yes |
+| LLM (OpenAI) | 40-58% | API key | No |
 
-**✅ Good for:** LLM reasoning · token-constrained contexts · internal docs  
-**❌ Avoid for:** user-facing copy · legal docs · emotional communication
+**Good for:** LLM reasoning, token-constrained contexts, internal docs
+
+**Avoid for:** user-facing copy, legal docs, emotional communication
 """)
