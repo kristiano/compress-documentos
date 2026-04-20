@@ -362,26 +362,32 @@ with col_in:
     run_clicked = st.button(run_label, use_container_width=True, key="run_btn",
                             disabled=(not extracted_text))
 
-# ------------------- RIGHT: Resultado (expander, click-to-reveal) -----------
+# ------------------- RIGHT: Resultado (expander + download visivel) ----------
 with col_out:
     has_result = bool(st.session_state.resultado_text)
     check = " \u2705" if has_result else ""
 
-    with st.expander(f"\U0001f4cb Resultado{check}", expanded=False):
+    # Download visivel imediatamente apos a compressao
+    if has_result:
+        if st.session_state.resultado_stats:
+            st.markdown(st.session_state.resultado_stats, unsafe_allow_html=True)
+        if st.session_state.resultado_quality:
+            st.markdown(st.session_state.resultado_quality, unsafe_allow_html=True)
+        st.download_button(
+            "\u2b07\ufe0f Download resultado.md",
+            data=st.session_state.resultado_text,
+            file_name=st.session_state.resultado_filename,
+            mime="text/markdown",
+            use_container_width=True,
+        )
+        st.markdown('<div class="hr"></div>', unsafe_allow_html=True)
+
+    # Expander: apenas para visualizar o texto (opcional)
+    with st.expander(f"\U0001f4cb Visualizar resultado{check}", expanded=False):
         if has_result:
             st.markdown(
                 f'<div class="output-text">{st.session_state.resultado_text}</div>',
                 unsafe_allow_html=True,
-            )
-            if st.session_state.resultado_stats:
-                st.markdown(st.session_state.resultado_stats, unsafe_allow_html=True)
-            if st.session_state.resultado_quality:
-                st.markdown(st.session_state.resultado_quality, unsafe_allow_html=True)
-            st.download_button(
-                "\u2b07\ufe0f Download .md",
-                data=st.session_state.resultado_text,
-                file_name=st.session_state.resultado_filename,
-                mime="text/markdown",
             )
         else:
             st.markdown(
