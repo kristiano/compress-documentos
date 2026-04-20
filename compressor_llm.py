@@ -129,46 +129,16 @@ def compress_text(text, api_key, model="gpt-4o-mini", calc_embeddings=False):
     try:
         client = OpenAI(api_key=api_key)
 
-        if is_text_content(text):
-            sentences = split_sentences(text)
-            if len(sentences) <= 1:
-                prompt = compression_prompt.format(text=text)
-                resp = client.chat.completions.create(
-                    model=model,
-                    messages=[
-                        {"role": "system", "content": "You are an expert at caveman compression. Always compress the provided text, never ask for clarification."},
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=0.3,
-                )
-                compressed = resp.choices[0].message.content.strip()
-            else:
-                parts = []
-                for sent in sentences:
-                    if not sent.strip():
-                        continue
-                    prompt = compression_prompt.format(text=sent)
-                    resp = client.chat.completions.create(
-                        model=model,
-                        messages=[
-                            {"role": "system", "content": "You are an expert at caveman compression. Always compress the provided text, never ask for clarification."},
-                            {"role": "user", "content": prompt}
-                        ],
-                        temperature=0.3,
-                    )
-                    parts.append(resp.choices[0].message.content.strip())
-                compressed = ' '.join(parts)
-        else:
-            prompt = compression_prompt.format(text=text)
-            resp = client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": "You are an expert at caveman compression. Always compress the provided text, never ask for clarification."},
-                    {"role": "user", "content": prompt}
-                ],
-                temperature=0.3,
-            )
-            compressed = resp.choices[0].message.content.strip()
+        prompt = compression_prompt.format(text=text)
+        resp = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": "You are an expert at caveman compression. Always compress the provided text, never ask for clarification. Return ONLY the compressed text."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.3,
+        )
+        compressed = resp.choices[0].message.content.strip()
 
         orig_tokens = count_tokens(text)
         comp_tokens = count_tokens(compressed)

@@ -400,30 +400,60 @@ with col_out:
 if run_clicked and extracted_text:
 
     input_text = extracted_text
+    
+    # Helper to split text into manageable chunks
+    def get_chunks(text, size=8000):
+        """Split text into chunks of roughly 'size' characters, trying to break at newlines."""
+        chunks = []
+        start = 0
+        while start < len(text):
+            end = start + size
+            if end >= len(text):
+                chunks.append(text[start:])
+                break
+            
+            # Try to find a newline to break cleanly
+            last_newline = text.rfind('\n', start + size // 2, end + 1000)
+            if last_newline != -1 and last_newline > start:
+                end = last_newline
+            
+            chunks.append(text[start:end])
+            start = end
+        return chunks
 
     # NLP -------------------------------------------------------------------
     if "NLP" in method:
         if "Compress" in mode:
             from compressor_nlp import compress_text, count_tokens
-            with st.spinner("Compressing with spaCy\u2026"):
-                result, err = compress_text(input_text, lang=lang)
-            if err:
-                st.error(f"\u274c {err}")
-                st.stop()
+            chunks = get_chunks(input_text, size=15000)
+            results = []
+            pb = st.progress(0, text="Compressing with NLP...")
+            
+            for i, chunk in enumerate(chunks):
+                pb.progress((i) / len(chunks), text=f"Processing segment {i+1} of {len(chunks)}...")
+                result, err = compress_text(chunk, lang=lang)
+                if err:
+                    st.error(f"❌ Error in chunk {i+1}: {err}")
+                    st.stop()
+                results.append(result)
+            
+            pb.empty()
+            full_result = "\n\n".join(results)
+            
             orig_t = count_tokens(input_text)
-            comp_t = count_tokens(result)
+            comp_t = count_tokens(full_result)
             red = ((orig_t - comp_t) / orig_t * 100) if orig_t > 0 else 0
-            _save_result(result, f"""
+            _save_result(full_result, f"""
             <div class="stats-row">
-                <span class="pill pill-gray">{orig_t:,} \u2192 {comp_t:,} tokens</span>
-                <span class="pill pill-green">\u2193 {red:.1f}% reduction</span>
+                <span class="pill pill-gray">{orig_t:,} → {comp_t:,} tokens</span>
+                <span class="pill pill-green">↓ {red:.1f}% reduction</span>
                 <span class="badge badge-nlp">NLP</span>
             </div>""", filename="compressed.md")
         else:
             from compressor_nlp import decompress_text
             result = decompress_text(input_text)
             _save_result(result,
-                         '<span class="badge badge-nlp">NLP \u00b7 Decompress</span>',
+                         '<span class="badge badge-nlp">NLP · Decompress</span>',
                          filename="decompressed.md")
 
     # MLM -------------------------------------------------------------------
@@ -431,34 +461,43 @@ if run_clicked and extracted_text:
         from compressor_mlm import is_available, get_missing_packages, count_tokens
         if not is_available():
             missing = get_missing_packages()
-            st.error(f"\u274c Missing: `{', '.join(missing)}`\n\nRun: `pip install {' '.join(missing)}`")
+            st.error(f"❌ Missing: `{', '.join(missing)}`\n\nRun: `pip install {' '.join(missing)}`")
             st.stop()
         if "Compress" in mode:
             from compressor_mlm import compress_text
-            pb = st.progress(0, text="Loading RoBERTa\u2026")
+            
+            chunks = get_chunks(input_text, size=8000)
+            results = []
+            pb = st.progress(0, text="Loading RoBERTa...")
 
-            def _cb(cur, tot):
-                pb.progress(min(cur / max(tot, 1), 1.0), text=f"Word {cur}/{tot}\u2026")
+            for i, chunk in enumerate(chunks):
+                def _cb(cur, tot):
+                    p_val = (i / len(chunks)) + (cur / tot / len(chunks))
+                    pb.progress(min(p_val, 1.0), text=f"Chunk {i+1}/{len(chunks)} · Word {cur}/{tot}...")
 
-            result, err = compress_text(
-                input_text,
-                prob_threshold=mlm_threshold,
-                no_adjacent_removal=mlm_no_adjacent,
-                protect_ner=mlm_protect_ner,
-                progress_callback=_cb,
-            )
+                result, err = compress_text(
+                    chunk,
+                    prob_threshold=mlm_threshold,
+                    no_adjacent_removal=mlm_no_adjacent,
+                    protect_ner=mlm_protect_ner,
+                    progress_callback=_cb,
+                )
+                if err:
+                    st.error(f"❌ Error in chunk {i+1}: {err}")
+                    st.stop()
+                results.append(result)
+            
             pb.empty()
-            if err:
-                st.error(f"\u274c {err}")
-                st.stop()
+            full_result = "\n\n".join(results)
+            
             orig_t = count_tokens(input_text)
-            comp_t = count_tokens(result)
+            comp_t = count_tokens(full_result)
             red = ((orig_t - comp_t) / orig_t * 100) if orig_t > 0 else 0
-            _save_result(result, f"""
+            _save_result(full_result, f"""
             <div class="stats-row">
-                <span class="pill pill-gray">{orig_t:,} \u2192 {comp_t:,} tokens</span>
-                <span class="pill pill-green">\u2193 {red:.1f}% reduction</span>
-                <span class="pill pill-purple">P \u2265 {mlm_threshold:.0e}</span>
+                <span class="pill pill-gray">{orig_t:,} → {comp_t:,} tokens</span>
+                <span class="pill pill-green">↓ {red:.1f}% reduction</span>
+                <span class="pill pill-purple">P ≥ {mlm_threshold:.0e}</span>
                 <span class="badge badge-mlm">RoBERTa</span>
             </div>""", filename="compressed.md")
         else:
@@ -471,44 +510,77 @@ if run_clicked and extracted_text:
     # LLM -------------------------------------------------------------------
     else:
         if not openai_key.strip():
-            st.error("\u274c Enter your OpenAI API key in the sidebar.")
+            st.error("❌ Enter your OpenAI API key in the sidebar.")
             st.stop()
         from compressor_llm import is_available as llm_ok
         if not llm_ok():
-            st.error("\u274c `openai` not installed.")
+            st.error("❌ `openai` not installed.")
             st.stop()
 
         if "Compress" in mode:
             from compressor_llm import compress_text
-            with st.spinner("Compressing with OpenAI\u2026"):
-                result, orig_t, comp_t, red, sim, loss, err = compress_text(
-                    input_text, api_key=openai_key, model=openai_model,
+            
+            chunks = get_chunks(input_text, size=12000) # LLM can handle larger chunks
+            results = []
+            pb = st.progress(0, text="Compressing with OpenAI...")
+            total_sim = 0
+            sim_count = 0
+
+            for i, chunk in enumerate(chunks):
+                pb.progress((i) / len(chunks), text=f"Sending chunk {i+1} of {len(chunks)} to OpenAI...")
+                result, _, _, _, sim, _, err = compress_text(
+                    chunk, api_key=openai_key, model=openai_model,
                     calc_embeddings=calc_embeddings,
                 )
-            if err:
-                st.error(f"\u274c {err}")
-                st.stop()
-            _save_result(result, f"""
+                if err:
+                    st.error(f"❌ Error in chunk {i+1}: {err}")
+                    st.stop()
+                results.append(result)
+                if sim is not None:
+                    total_sim += sim
+                    sim_count += 1
+            
+            pb.empty()
+            full_result = "\n\n".join(results)
+            avg_sim = total_sim / sim_count if sim_count > 0 else None
+
+            orig_t = count_tokens(input_text)
+            comp_t = count_tokens(full_result)
+            red = ((orig_t - comp_t) / orig_t * 100) if orig_t > 0 else 0
+            _save_result(full_result, f"""
             <div class="stats-row">
-                <span class="pill pill-gray">{orig_t:,} \u2192 {comp_t:,} tokens</span>
-                <span class="pill pill-green">\u2193 {red:.1f}% reduction</span>
+                <span class="pill pill-gray">{orig_t:,} → {comp_t:,} tokens</span>
+                <span class="pill pill-green">↓ {red:.1f}% reduction</span>
                 <span class="badge badge-llm">LLM / {openai_model}</span>
             </div>""",
-            quality_html=quality_badge(sim) if calc_embeddings else "",
+            quality_html=quality_badge(avg_sim) if calc_embeddings else "",
             filename="compressed.md")
         else:
             from compressor_llm import decompress_text
-            with st.spinner("Decompressing\u2026"):
-                result, cave_t, norm_t, exp, err = decompress_text(
-                    input_text, api_key=openai_key, model=openai_model
+            chunks = get_chunks(input_text, size=8000)
+            results = []
+            pb = st.progress(0, text="Decompressing with OpenAI...")
+            
+            for i, chunk in enumerate(chunks):
+                pb.progress((i) / len(chunks), text=f"Expanding chunk {i+1}/{len(chunks)}...")
+                result, _, _, _, err = decompress_text(
+                    chunk, api_key=openai_key, model=openai_model
                 )
-            if err:
-                st.error(f"\u274c {err}")
-                st.stop()
-            _save_result(result, f"""
+                if err:
+                    st.error(f"❌ Error in chunk {i+1}: {err}")
+                    st.stop()
+                results.append(result)
+            
+            pb.empty()
+            full_result = "\n\n".join(results)
+            
+            cave_t = count_tokens(input_text)
+            norm_t = count_tokens(full_result)
+            exp = ((norm_t - cave_t) / cave_t * 100) if cave_t > 0 else 0
+            _save_result(full_result, f"""
             <div class="stats-row">
-                <span class="pill pill-gray">{cave_t:,} \u2192 {norm_t:,} tokens</span>
-                <span class="pill pill-green">\u2191 {exp:.1f}% expansion</span>
+                <span class="pill pill-gray">{cave_t:,} → {norm_t:,} tokens</span>
+                <span class="pill pill-green">↑ {exp:.1f}% expansion</span>
                 <span class="badge badge-llm">LLM / {openai_model}</span>
             </div>""", filename="decompressed.md")
 
