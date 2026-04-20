@@ -336,10 +336,9 @@ with col_in:
                 <span class="pill pill-blue">≈ {token_est:,} tokens</span>
             </div>""", unsafe_allow_html=True)
 
-            st.markdown('<div class="hr" style="margin-top:0.8rem;"></div>', unsafe_allow_html=True)
-            st.markdown('<div class="slabel">Extracted Text Preview</div>', unsafe_allow_html=True)
-            preview = extracted_text[:1200] + ("…" if len(extracted_text) > 1200 else "")
-            st.markdown(f'<div class="preview-box">{preview}</div>', unsafe_allow_html=True)
+            with st.expander("👁️ Preview extracted text"):
+                preview = extracted_text[:1200] + ("…" if len(extracted_text) > 1200 else "")
+                st.markdown(f'<div class="preview-box">{preview}</div>', unsafe_allow_html=True)
 
     # Action button
     st.markdown("<div style='margin-top:1rem;'></div>", unsafe_allow_html=True)
@@ -385,15 +384,15 @@ if run_clicked and extracted_text:
                 <span class="pill pill-green">↓ {red:.1f}% reduction</span>
                 <span class="badge badge-nlp">NLP</span>
             </div>""", unsafe_allow_html=True)
-            dl_ph.download_button("⬇️ Download compressed .txt", data=result,
-                                  file_name="compressed.txt", mime="text/plain")
+            dl_ph.download_button("⬇️ Download compressed .md", data=result,
+                                  file_name="compressed.md", mime="text/markdown")
         else:
             from compressor_nlp import decompress_text
             result = decompress_text(input_text)
             out_ph.markdown(f'<div class="output-text">{result}</div>', unsafe_allow_html=True)
             stats_ph.markdown('<span class="badge badge-nlp">NLP · Decompress</span>', unsafe_allow_html=True)
-            dl_ph.download_button("⬇️ Download .txt", data=result,
-                                  file_name="decompressed.txt", mime="text/plain")
+            dl_ph.download_button("⬇️ Download .md", data=result,
+                                  file_name="decompressed.md", mime="text/markdown")
 
     # ── MLM ──────────────────────────────────────────────────────────────
     elif "MLM" in method:
@@ -431,15 +430,15 @@ if run_clicked and extracted_text:
                 <span class="pill pill-purple">P ≥ {mlm_threshold:.0e}</span>
                 <span class="badge badge-mlm">RoBERTa</span>
             </div>""", unsafe_allow_html=True)
-            dl_ph.download_button("⬇️ Download compressed .txt", data=result,
-                                  file_name="compressed.txt", mime="text/plain")
+            dl_ph.download_button("⬇️ Download compressed .md", data=result,
+                                  file_name="compressed.md", mime="text/markdown")
         else:
             from compressor_mlm import decompress_text
             result = decompress_text(input_text)
             out_ph.markdown(f'<div class="output-text">{result}</div>', unsafe_allow_html=True)
             stats_ph.markdown('<span class="badge badge-mlm">RoBERTa · Decompress</span>', unsafe_allow_html=True)
-            dl_ph.download_button("⬇️ Download .txt", data=result,
-                                  file_name="decompressed.txt", mime="text/plain")
+            dl_ph.download_button("⬇️ Download .md", data=result,
+                                  file_name="decompressed.md", mime="text/markdown")
 
     # ── LLM ──────────────────────────────────────────────────────────────
     else:
@@ -470,8 +469,8 @@ if run_clicked and extracted_text:
             </div>
             {quality_badge(sim) if calc_embeddings else ""}
             """, unsafe_allow_html=True)
-            dl_ph.download_button("⬇️ Download compressed .txt", data=result,
-                                  file_name="compressed.txt", mime="text/plain")
+            dl_ph.download_button("⬇️ Download compressed .md", data=result,
+                                  file_name="compressed.md", mime="text/markdown")
         else:
             from compressor_llm import decompress_text
             with st.spinner("Decompressing…"):
@@ -488,8 +487,8 @@ if run_clicked and extracted_text:
                 <span class="pill pill-green">↑ {exp:.1f}% expansion</span>
                 <span class="badge badge-llm">LLM / {openai_model}</span>
             </div>""", unsafe_allow_html=True)
-            dl_ph.download_button("⬇️ Download .txt", data=result,
-                                  file_name="decompressed.txt", mime="text/plain")
+            dl_ph.download_button("⬇️ Download .md", data=result,
+                                  file_name="decompressed.md", mime="text/markdown")
 
 # ── How it works ──────────────────────────────────────────────────────────
 st.markdown('<div class="hr" style="margin-top:2rem;"></div>', unsafe_allow_html=True)
